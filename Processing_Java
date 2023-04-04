@@ -1,0 +1,112 @@
+int CELL_SIZE = 50;
+int ROWS = 8;
+int COLS = 8;
+int MAX_MATCHES = 3;
+color[] colors = {
+  color(255, 0, 0), color(0, 255, 0), color(0, 0, 255),
+  color(255, 255, 0), color(255, 0, 255), color(0, 255, 255)
+};
+int[][] board = new int[ROWS][COLS];
+
+enum Orientation {
+  HORIZONTAL, VERTICAL
+};
+
+class Match {
+  int row, col;
+  Orientation orientation;
+
+  Match(int row, int col, Orientation orientation) {
+    this.row = row;
+    this.col = col;
+    this.orientation = orientation;
+  }
+}
+void settings() {
+  size(COLS * CELL_SIZE, ROWS * CELL_SIZE);
+}
+void setup() {
+  size(COLS * CELL_SIZE, ROWS * CELL_SIZE);
+  randomizeBoard();
+}
+
+void draw() {
+  background(255);
+  drawBoard();
+  checkAndProcessMatches();
+}
+
+void randomizeBoard() {
+  for (int row = 0; row < ROWS; row++) {
+    for (int col = 0; col < COLS; col++) {
+      board[row][col] = int(random(colors.length));
+    }
+  }
+}
+
+void drawBoard() {
+  for (int row = 0; row < ROWS; row++) {
+    for (int col = 0; col < COLS; col++) {
+      int colorIndex = board[row][col];
+      fill(colors[colorIndex]);
+      rect(col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+    }
+  }
+}
+
+void checkAndProcessMatches() {
+  ArrayList<Match> matches = new ArrayList<Match>();
+
+  for (int row = 0; row < ROWS; row++) {
+    for (int col = 0; col < COLS - MAX_MATCHES + 1; col++) {
+if (board[row][col] == board[row][col + 1] && board[row][col] == board[row][col + 2]) {
+matches.add(new Match(row, col, Orientation.HORIZONTAL));
+}
+}
+}
+
+for (int col = 0; col < COLS; col++) {
+for (int row = 0; row < ROWS - MAX_MATCHES + 1; row++) {
+if (board[row][col] == board[row + 1][col] && board[row][col] == board[row + 2][col]) {
+matches.add(new Match(row, col, Orientation.VERTICAL));
+}
+}
+}
+
+for (Match match : matches) {
+int row = match.row;
+int col = match.col;
+Orientation orientation = match.orientation;
+if (orientation == Orientation.HORIZONTAL) {
+for (int i = 0; i < MAX_MATCHES; i++) {
+board[row][col + i] = int(random(colors.length));
+}
+} else {
+for (int i = 0; i < MAX_MATCHES; i++) {
+board[row + i][col] = int(random(colors.length));
+}
+}
+}
+}
+
+void mouseClicked() {
+int col = mouseX / CELL_SIZE;
+int row = mouseY / CELL_SIZE;
+if (0 <= col && col < COLS && 0 <= row && row < ROWS) {
+board[row][col] = (board[row][col] + 1) % colors.length;
+}
+}
+
+void keyPressed() {
+if (key == 's') {
+saveGameProgress();
+}
+}
+
+void saveGameProgress() {
+String[] lines = new String[ROWS];
+for (int i = 0; i < ROWS; i++) {
+lines[i] = join(nfs(board[i], 0), " ");
+}
+saveStrings("game_progress.txt", lines);
+}
